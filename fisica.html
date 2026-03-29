@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SI Fácil - Transformación de Unidades</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .multiply-bg {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(21, 128, 61, 0.2) 100%);
+            border: 2px solid rgba(34, 197, 94, 0.4);
+        }
+        .divide-bg {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.2) 100%);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+        }
+        .nav-link {
+            position: relative;
+            cursor: pointer;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .step-box {
+            background: rgba(15, 23, 42, 0.6);
+            border-left: 4px solid;
+        }
+        .blob {
+            position: fixed;
+            filter: blur(40px);
+            opacity: 0.4;
+            z-index: -1;
+            animation: move 20s infinite alternate;
+        }
+        @keyframes move {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(50px, -50px) scale(1.1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.5s; }
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .bounce-in { animation: bounceIn 0.5s; }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+        }
+        .conversion-table {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body class="text-white font-sans">
+
+    <!-- Background blobs -->
+    <div class="blob bg-purple-600 w-96 h-96 rounded-full top-0 left-0 -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="blob bg-cyan-600 w-80 h-80 rounded-full bottom-0 right-0 translate-x-1/2 translate-y-1/2"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div onclick="showSection('inicio')" class="flex items-center space-x-2 group cursor-pointer">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-ruler-combined text-xl"></i>
+                    </div>
+                    <span class="font-display font-bold text-xl tracking-tight">SI<span class="text-indigo-400">Fácil</span></span>
+                </div>
+                
+                <div class="hidden md:flex space-x-8">
+                    <span onclick="showSection('inicio')" class="nav-link active text-indigo-400 font-medium" data-section="inicio">Inicio</span>
+                    <span onclick="showSection('tablas')" class="nav-link hover:text-indigo-400 transition-colors font-medium" data-section="tablas">Tablas</span>
+                    <span onclick="showSection('ejemplos')" class="nav-link hover:text-indigo-400 transition-colors font-medium" data-section="ejemplos">Ejemplos</span>
+                    <span onclick="showSection('calculadora')" class="nav-link hover:text-indigo-400 transition-colors font-medium" data-section="calculadora">Calculadora</span>
+                    <span onclick="showSection('ejercicios')" class="nav-link hover:text-indigo-400 transition-colors font-medium" data-section="ejercicios">Ejercicios</span>
+                </div>
+
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg glass">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+            
+            <div id="mobileMenu" class="hidden md:hidden pb-4">
+                <span onclick="showSection('inicio')" class="block py-2 text-indigo-400 font-medium cursor-pointer">Inicio</span>
+                <span onclick="showSection('tablas')" class="block py-2 hover:text-indigo-400 transition-colors cursor-pointer">Tablas</span>
+                <span onclick="showSection('ejemplos')" class="block py-2 hover:text-indigo-400 transition-colors cursor-pointer">Ejemplos</span>
+                <span onclick="showSection('calculadora')" class="block py-2 hover:text-indigo-400 transition-colors cursor-pointer">Calculadora</span>
+                <span onclick="showSection('ejercicios')" class="block py-2 hover:text-indigo-400 transition-colors cursor-pointer">Ejercicios</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- SECCIÓN 1: INICIO -->
+    <section id="inicio" class="section active pt-16">
+        <!-- Hero -->
+        <div class="min-h-screen flex items-center justify-center px-4">
+            <div class="max-w-6xl mx-auto text-center">
+                <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full glass mb-6 animate-pulse">
+                    <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                    <span class="text-sm font-medium text-gray-300">2° Medio - Física</span>
+                </div>
+                
+                <h1 class="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                    La Regla de <br>
+                    <span class="gradient-text">Oro</span> 🎯
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-gray-400 mb-8 max-w-3xl mx-auto">
+                    "A la derecha se multiplica, a la izquierda se divide"
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto">
+                    <!-- Multiplicar -->
+                    <div class="multiply-bg rounded-3xl p-8 card-hover">
+                        <div class="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+                            <i class="fas fa-times"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-green-400 mb-2">MULTIPLICAS (×)</h3>
+                        <p class="text-lg text-gray-300 mb-4">Grande → Chico</p>
+                        <div class="text-sm text-gray-400 space-y-1">
+                            <p>km → m (×1000)</p>
+                            <p>m → cm (×100)</p>
+                            <p>hr → min (×60)</p>
+                            <p>kg → g (×1000)</p>
+                        </div>
+                    </div>
+
+                    <!-- Dividir -->
+                    <div class="divide-bg rounded-3xl p-8 card-hover">
+                        <div class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center text-3xl mx-auto mb-4 animate-bounce">
+                            <i class="fas fa-divide"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-red-400 mb-2">DIVIDES (÷)</h3>
+                        <p class="text-lg text-gray-300 mb-4">Chico → Grande</p>
+                        <div class="text-sm text-gray-400 space-y-1">
+                            <p>cm → m (÷100)</p>
+                            <p>g → kg (÷1000)</p>
+                            <p>min → hr (÷60)</p>
+                            <p>m → km (÷1000)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="showSection('tablas')" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full font-semibold text-lg hover:scale-105 transition-transform">
+                    Ver Tablas de Equivalencias
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Esquema Visual -->
+        <div class="py-20 px-4">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="font-display text-4xl font-bold text-center mb-12">Esquema Visual</h2>
+                
+                <div class="grid md:grid-cols-3 gap-6">
+                    <!-- Longitud -->
+                    <div class="glass rounded-2xl p-6 card-hover">
+                        <h3 class="text-xl font-bold text-cyan-400 mb-4 text-center">LONGITUD</h3>
+                        <div class="space-y-2 text-center">
+                            <div class="p-2 bg-slate-800/50 rounded-lg">km</div>
+                            <i class="fas fa-arrow-down text-green-400"></i>
+                            <div class="text-xs text-green-400">×1000</div>
+                            <div class="p-2 bg-slate-800/50 rounded-lg">m</div>
+                            <i class="fas fa-arrow-down text-green-400"></i>
+                            <div class="text-xs text-green-400">×100</div>
+                            <div class="p-2 bg-slate-800/50 rounded-lg">cm</div>
+                            <i class="fas fa-arrow-down text-green-400"></i>
+                            <div class="text-xs text-green-400">×10</div>
+                            <div class="p-2 bg-slate-800/50 rounded-lg">mm</div>
+                        </div>
+                        <div class="mt-4 text-center text-xs text-gray-500">
+                            ← Subes divides | Bajas multiplicas →
+                        </div>
+                    </div>
+
+                    <!-- Tiempo -->
+                    <div class="glass rounded-2xl p-6 card-hover">
+                        <h3 class="text-xl font-bold text-purple-400 mb-4 text-center">TIEMPO</h3>
+                        <div class="space-y-2 text-center">
+                            <div class="p-2 bg-slate-800/50 rounded-lg">hr</div>
+                            <i class="fas fa-arrow-down text-green-400"></i>
+                            <div class="text-xs text-green-400">×60</div>
+                            <div class="p-2 bg-slate-800/50 rounded-lg">min</div>
+                            <i class="fas fa-arrow-down text-green-400"></i>
+                            <div class="text-xs text-green-400">×60</div>
+                            <div class="p-2 bg-slate-800/50 rounded-lg">seg</div>
+                        </div>
+                        <div class="mt-4 p-3 bg-purple-500/20 rounded-lg text-center text-sm">
+                            <span class="text-purple-400 font-bold">1 hr = 3600 seg</span>
+                        </div>
+                    </div>
+
+                    <!-- Masa -->
+                    <div class="glass rounded-2xl p-6 card-hover">
+                        <h3 class="text-xl font-bold text-pink-400 mb-4 text-center">MASA</h3>
+                        <div class="space-y-2 text-center">
+                            <div class="p-2 bg-slate-800/50 rounded-lg">Ton</div>
+                            <i class="fas fa-arrow-down text-green-400"></i>
+                            <div class="text-xs text-green-400">×1000</div>
+                            <div class="p-2 bg-slate-800/50 rounded-lg">kg</div>
+                            <i class="fas fa-arrow-down text-green-400"></i>
+                            <div class="text-xs text-green-400">×1000</div>
+                            <div class="p-2 bg-slate-800/50 rounded-lg">g</div>
+                            <i class="fas fa-arrow-down text-green-400"></i>
+                            <div class="text-xs text-green-400">×1000</div>
+                            <div class="p-2 bg-slate-800/50 rounded-lg">mg</div>
+                        </div>
+                        <div class="mt-4 text-center text-xs text-gray-500">
+                            ← Subes divides | Bajas multiplicas →
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 2: TABLAS -->
+    <section id="tablas" class="section pt-24 pb-12 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h1 class="font-display text-4xl md:text-5xl font-bold mb-4">
+                    Tablas de <span class="gradient-text">Equivalencias</span>
+                </h1>
+                <p class="text-gray-400 text-lg">Las mismas que tienes en tu cuaderno</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <!-- Longitud -->
+                <div class="conversion-table rounded-2xl p-6 card-hover">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400 text-2xl">
+                            <i class="fas fa-ruler"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold">Longitud</h2>
+                    </div>
+                    <ul class="space-y-3 font-mono">
+                        <li class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>1 km</span>
+                            <span class="text-cyan-400 font-bold">= 1000 m</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>1 m</span>
+                            <span class="text-cyan-400 font-bold">= 100 cm</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>1 cm</span>
+                            <span class="text-cyan-400 font-bold">= 10 mm</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Tiempo -->
+                <div class="conversion-table rounded-2xl p-6 card-hover">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 text-2xl">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold">Tiempo</h2>
+                    </div>
+                    <ul class="space-y-3 font-mono">
+                        <li class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>1 hr</span>
+                            <span class="text-purple-400 font-bold">= 3600 seg</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>1 hr</span>
+                            <span class="text-purple-400 font-bold">= 60 min</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>1 min</span>
+                            <span class="text-purple-400 font-bold">= 60 seg</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Masa -->
+                <div class="conversion-table rounded-2xl p-6 card-hover">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400 text-2xl">
+                            <i class="fas fa-weight"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold">Masa</h2>
+                    </div>
+                    <ul class="space-y-3 font-mono">
+                        <li class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>1 Ton</span>
+                            <span class="text-pink-400 font-bold">= 1000 kg</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>1 kg</span>
+                            <span class="text-pink-400 font-bold">= 1000 g</span>
+                        </li>
+                        <li class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg">
+                            <span>1 g</span>
+                            <span class="text-pink-400 font-bold">= 1000 mg</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Extras -->
+            <div class="glass rounded-2xl p-8 max-w-2xl mx-auto mb-12">
+                <h3 class="text-2xl font-bold text-center mb-6 text-amber-400">
+                    <i class="fas fa-calendar-alt mr-2"></i>Equivalencias Adicionales
+                </h3>
+                <div class="grid grid-cols-2 gap-6 text-center">
+                    <div class="p-6 bg-slate-800/50 rounded-xl">
+                        <div class="text-3xl font-bold text-amber-400 mb-2">1 Mes</div>
+                        <div class="text-gray-400">= 30 días</div>
+                    </div>
+                    <div class="p-6 bg-slate-800/50 rounded-xl">
+                        <div class="text-3xl font-bold text-amber-400 mb-2">1 Día</div>
+                        <div class="text-gray-400">= 24 horas</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="showSection('ejemplos')" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full font-semibold text-lg hover:scale-105 transition-transform">
+                    Ver Ejemplos Resueltos
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 3: EJEMPLOS -->
+    <section id="ejemplos" class="section pt-24 pb-12 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h1 class="font-display text-4xl md:text-5xl font-bold mb-4">
+                    Ejemplos de tu <span class="gradient-text">Cuaderno</span> 📓
+                </h1>
+                <p class="text-gray-400 text-lg">Resueltos paso a paso con el método fácil</p>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Ejemplo 1 -->
+                <div class="glass rounded-3xl p-8 card-hover border-l-4 border-cyan-400">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-cyan-500 flex items-center justify-center text-xl font-bold">1</div>
+                        <h2 class="text-2xl font-bold">4,5 m → cm</h2>
+                        <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-sm ml-auto">Longitud</span>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <div class="step-box border-cyan-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 1: Dirección</p>
+                                <p>m (grande) → cm (chico)</p>
+                                <p class="text-green-400 font-bold mt-2"><i class="fas fa-arrow-right mr-2"></i>MULTIPLICO</p>
+                            </div>
+                            <div class="step-box border-green-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 2: Equivalencia</p>
+                                <p>1 m = 100 cm</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-800/80 rounded-xl p-6 font-mono text-center">
+                            <p class="text-gray-400 mb-2">Operación:</p>
+                            <p class="text-3xl font-bold mb-2">4,5 × 100</p>
+                            <div class="h-px bg-gray-600 my-3"></div>
+                            <p class="text-3xl font-bold text-cyan-400">= 450 cm</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ejemplo 2 -->
+                <div class="glass rounded-3xl p-8 card-hover border-l-4 border-pink-400">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center text-xl font-bold">2</div>
+                        <h2 class="text-2xl font-bold">400 g → kg</h2>
+                        <span class="px-3 py-1 rounded-full bg-pink-500/20 text-pink-400 text-sm ml-auto">Masa</span>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <div class="step-box border-pink-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 1: Dirección</p>
+                                <p>g (chico) → kg (grande)</p>
+                                <p class="text-red-400 font-bold mt-2"><i class="fas fa-arrow-left mr-2"></i>DIVIDO</p>
+                            </div>
+                            <div class="step-box border-red-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 2: Equivalencia</p>
+                                <p>1 kg = 1000 g</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-800/80 rounded-xl p-6 font-mono text-center">
+                            <p class="text-gray-400 mb-2">Operación:</p>
+                            <p class="text-3xl font-bold mb-2">400 ÷ 1000</p>
+                            <div class="h-px bg-gray-600 my-3"></div>
+                            <p class="text-3xl font-bold text-pink-400">= 0,4 kg</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ejemplo 3 -->
+                <div class="glass rounded-3xl p-8 card-hover border-l-4 border-purple-400">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center text-xl font-bold">3</div>
+                        <h2 class="text-2xl font-bold">2 hr → seg</h2>
+                        <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-sm ml-auto">Tiempo</span>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <div class="step-box border-purple-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 1: Dirección</p>
+                                <p>hr (grande) → seg (chico)</p>
+                                <p class="text-green-400 font-bold mt-2"><i class="fas fa-arrow-right mr-2"></i>MULTIPLICO</p>
+                            </div>
+                            <div class="step-box border-green-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 2: Equivalencia</p>
+                                <p>1 hr = 3600 seg</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-800/80 rounded-xl p-6 font-mono text-center">
+                            <p class="text-gray-400 mb-2">Operación:</p>
+                            <p class="text-3xl font-bold mb-2">3600 × 2</p>
+                            <div class="h-px bg-gray-600 my-3"></div>
+                            <p class="text-3xl font-bold text-purple-400">= 7200 seg</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ejemplo 4 -->
+                <div class="glass rounded-3xl p-8 card-hover border-l-4 border-green-400">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-xl font-bold">4</div>
+                        <h2 class="text-2xl font-bold">40 kg → g</h2>
+                        <span class="px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-sm ml-auto">Masa</span>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <div class="step-box border-green-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 1: Dirección</p>
+                                <p>kg (grande) → g (chico)</p>
+                                <p class="text-green-400 font-bold mt-2"><i class="fas fa-arrow-right mr-2"></i>MULTIPLICO</p>
+                            </div>
+                            <div class="step-box border-green-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 2: Equivalencia</p>
+                                <p>1 kg = 1000 g</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-800/80 rounded-xl p-6 font-mono text-center">
+                            <p class="text-gray-400 mb-2">Operación:</p>
+                            <p class="text-3xl font-bold mb-2">40 × 1000</p>
+                            <div class="h-px bg-gray-600 my-3"></div>
+                            <p class="text-3xl font-bold text-green-400">= 40.000 g</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ejemplo 5 -->
+                <div class="glass rounded-3xl p-8 card-hover border-l-4 border-red-400">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-xl font-bold">5</div>
+                        <h2 class="text-2xl font-bold">1000 cm → m</h2>
+                        <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-sm ml-auto">Longitud</span>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <div class="step-box border-red-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 1: Dirección</p>
+                                <p>cm (chico) → m (grande)</p>
+                                <p class="text-red-400 font-bold mt-2"><i class="fas fa-arrow-left mr-2"></i>DIVIDO</p>
+                            </div>
+                            <div class="step-box border-red-400 p-4 rounded-xl">
+                                <p class="text-sm text-gray-400 mb-1">Paso 2: Equivalencia</p>
+                                <p>1 m = 100 cm</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-800/80 rounded-xl p-6 font-mono text-center">
+                            <p class="text-gray-400 mb-2">Operación:</p>
+                            <p class="text-3xl font-bold mb-2">1000 ÷ 100</p>
+                            <div class="h-px bg-gray-600 my-3"></div>
+                            <p class="text-3xl font-bold text-red-400">= 10 m</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center">
+                <button onclick="showSection('calculadora')" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full font-semibold text-lg hover:scale-105 transition-transform">
+                    Ir a la Calculadora
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 4: CALCULADORA -->
+    <section id="calculadora" class="section pt-24 pb-12 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h1 class="font-display text-4xl md:text-5xl font-bold mb-4">
+                    Calculadora con <span class="gradient-text">Método Fácil</span>
+                </h1>
+                <p class="text-gray-400 text-lg">Ella te dice si multiplicas o divides</p>
+            </div>
+
+            <div class="glass rounded-3xl p-8 shadow-2xl">
+                <!-- Tabs -->
+                <div class="grid grid-cols-3 gap-2 mb-8">
+                    <button onclick="setCalcMode('length')" class="calc-tab active px-4 py-3 rounded-xl bg-indigo-600 text-white font-medium transition-all" data-mode="length">
+                        <i class="fas fa-ruler mr-2"></i>Longitud
+                    </button>
+                    <button onclick="setCalcMode('mass')" class="calc-tab px-4 py-3 rounded-xl glass hover:bg-white/10 font-medium transition-all" data-mode="mass">
+                        <i class="fas fa-weight mr-2"></i>Masa
+                    </button>
+                    <button onclick="setCalcMode('time')" class="calc-tab px-4 py-3 rounded-xl glass hover:bg-white/10 font-medium transition-all" data-mode="time">
+                        <i class="fas fa-clock mr-2"></i>Tiempo
+                    </button>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6 items-center mb-8">
+                    <!-- Input -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-gray-300">Valor</label>
+                        <input type="number" id="calcInput" placeholder="Ej: 4.5" 
+                            class="w-full px-4 py-4 bg-slate-800/50 border border-slate-600 rounded-2xl text-2xl font-display text-center focus:outline-none focus:border-indigo-500 transition-all"
+                            oninput="calculate()">
+                        <select id="calcFrom" onchange="calculate()" class="w-full px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </select>
+                    </div>
+
+                    <!-- Operation Indicator -->
+                    <div class="flex justify-center">
+                        <div id="opIndicator" class="text-center p-6 rounded-2xl glass min-w-[140px]">
+                            <i class="fas fa-exchange-alt text-4xl text-gray-500 mb-2"></i>
+                            <p class="text-gray-400 text-sm">Selecciona</p>
+                        </div>
+                    </div>
+
+                    <!-- Output -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-gray-300">Resultado</label>
+                        <input type="text" id="calcOutput" readonly 
+                            class="w-full px-4 py-4 bg-slate-900/80 border border-indigo-500/50 rounded-2xl text-2xl font-display text-center text-indigo-300"
+                            placeholder="0">
+                        <select id="calcTo" onchange="calculate()" class="w-full px-4 py-2 bg-slate-800/50 border border-slate-600 rounded-lg focus:outline-none focus:border-indigo-500">
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step by Step -->
+                <div id="calcSteps" class="hidden p-6 rounded-2xl bg-slate-800/50">
+                    <h3 class="font-bold text-lg mb-3 text-indigo-400">
+                        <i class="fas fa-graduation-cap mr-2"></i>Paso a paso:
+                    </h3>
+                    <div id="calcStepsContent" class="space-y-2 text-gray-300"></div>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center">
+                <button onclick="showSection('ejercicios')" class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full font-semibold text-lg hover:scale-105 transition-transform">
+                    Practicar Ejercicios
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN 5: EJERCICIOS -->
+    <section id="ejercicios" class="section pt-24 pb-12 px-4">
+        <div class="max-w-3xl mx-auto">
+            <div class="text-center mb-12">
+                <h1 class="font-display text-4xl md:text-5xl font-bold mb-4">
+                    ¡A Practicar! <span class="gradient-text">Tú Puedes</span> 💪
+                </h1>
+                <p class="text-gray-400 text-lg">Pon a prueba lo aprendido</p>
+                
+                <!-- Score -->
+                <div class="mt-6 inline-flex items-center gap-4 px-6 py-3 glass rounded-full">
+                    <span class="text-gray-400">Correctas:</span>
+                    <span id="scoreCorrect" class="text-2xl font-bold text-green-400">0</span>
+                    <span class="text-gray-600">/</span>
+                    <span id="scoreTotal" class="text-2xl font-bold text-gray-400">6</span>
+                </div>
+            </div>
+
+            <div class="space-y-6" id="exercisesList">
+                <!-- Ejercicio 1 -->
+                <div class="glass rounded-2xl p-6 exercise-card" data-answer="250" data-type="multiply">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Ejercicio 1</h3>
+                        <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-sm">Longitud</span>
+                    </div>
+                    <p class="text-lg mb-4">Convierte <span class="font-bold text-cyan-400">2,5 m</span> a <span class="font-bold text-cyan-400">cm</span></p>
+                    <div class="flex gap-2">
+                        <input type="text" id="ex1" placeholder="Tu respuesta" 
+                            class="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                            onkeypress="if(event.key==='Enter')checkExercise(1)">
+                        <button onclick="checkExercise(1)" class="px-6 py-3 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="fb1" class="mt-3 hidden"></div>
+                    <button onclick="showExerciseHint(1)" class="mt-2 text-sm text-gray-500 hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-lightbulb mr-1"></i>¿Necesitas ayuda?
+                    </button>
+                    <div id="hint1" class="mt-2 hidden p-3 bg-indigo-500/10 rounded-lg text-sm text-indigo-300"></div>
+                </div>
+
+                <!-- Ejercicio 2 -->
+                <div class="glass rounded-2xl p-6 exercise-card" data-answer="2.5" data-type="divide">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Ejercicio 2</h3>
+                        <span class="px-3 py-1 rounded-full bg-pink-500/20 text-pink-400 text-sm">Masa</span>
+                    </div>
+                    <p class="text-lg mb-4">Convierte <span class="font-bold text-pink-400">2500 g</span> a <span class="font-bold text-pink-400">kg</span></p>
+                    <div class="flex gap-2">
+                        <input type="text" id="ex2" placeholder="Tu respuesta (usa punto o coma)" 
+                            class="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                            onkeypress="if(event.key==='Enter')checkExercise(2)">
+                        <button onclick="checkExercise(2)" class="px-6 py-3 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="fb2" class="mt-3 hidden"></div>
+                    <button onclick="showExerciseHint(2)" class="mt-2 text-sm text-gray-500 hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-lightbulb mr-1"></i>¿Necesitas ayuda?
+                    </button>
+                    <div id="hint2" class="mt-2 hidden p-3 bg-indigo-500/10 rounded-lg text-sm text-indigo-300"></div>
+                </div>
+
+                <!-- Ejercicio 3 -->
+                <div class="glass rounded-2xl p-6 exercise-card" data-answer="10800" data-type="multiply">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Ejercicio 3</h3>
+                        <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-sm">Tiempo</span>
+                    </div>
+                    <p class="text-lg mb-4">Convierte <span class="font-bold text-purple-400">3 hr</span> a <span class="font-bold text-purple-400">segundos</span></p>
+                    <div class="flex gap-2">
+                        <input type="text" id="ex3" placeholder="Tu respuesta" 
+                            class="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                            onkeypress="if(event.key==='Enter')checkExercise(3)">
+                        <button onclick="checkExercise(3)" class="px-6 py-3 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="fb3" class="mt-3 hidden"></div>
+                    <button onclick="showExerciseHint(3)" class="mt-2 text-sm text-gray-500 hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-lightbulb mr-1"></i>¿Necesitas ayuda?
+                    </button>
+                    <div id="hint3" class="mt-2 hidden p-3 bg-indigo-500/10 rounded-lg text-sm text-indigo-300"></div>
+                </div>
+
+                <!-- Ejercicio 4 -->
+                <div class="glass rounded-2xl p-6 exercise-card" data-answer="5000" data-type="multiply">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Ejercicio 4</h3>
+                        <span class="px-3 py-1 rounded-full bg-pink-500/20 text-pink-400 text-sm">Masa</span>
+                    </div>
+                    <p class="text-lg mb-4">Convierte <span class="font-bold text-pink-400">5 kg</span> a <span class="font-bold text-pink-400">g</span></p>
+                    <div class="flex gap-2">
+                        <input type="text" id="ex4" placeholder="Tu respuesta" 
+                            class="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                            onkeypress="if(event.key==='Enter')checkExercise(4)">
+                        <button onclick="checkExercise(4)" class="px-6 py-3 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="fb4" class="mt-3 hidden"></div>
+                    <button onclick="showExerciseHint(4)" class="mt-2 text-sm text-gray-500 hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-lightbulb mr-1"></i>¿Necesitas ayuda?
+                    </button>
+                    <div id="hint4" class="mt-2 hidden p-3 bg-indigo-500/10 rounded-lg text-sm text-indigo-300"></div>
+                </div>
+
+                <!-- Ejercicio 5 -->
+                <div class="glass rounded-2xl p-6 exercise-card" data-answer="5" data-type="divide">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Ejercicio 5</h3>
+                        <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 text-sm">Longitud</span>
+                    </div>
+                    <p class="text-lg mb-4">Convierte <span class="font-bold text-cyan-400">500 cm</span> a <span class="font-bold text-cyan-400">m</span></p>
+                    <div class="flex gap-2">
+                        <input type="text" id="ex5" placeholder="Tu respuesta" 
+                            class="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                            onkeypress="if(event.key==='Enter')checkExercise(5)">
+                        <button onclick="checkExercise(5)" class="px-6 py-3 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="fb5" class="mt-3 hidden"></div>
+                    <button onclick="showExerciseHint(5)" class="mt-2 text-sm text-gray-500 hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-lightbulb mr-1"></i>¿Necesitas ayuda?
+                    </button>
+                    <div id="hint5" class="mt-2 hidden p-3 bg-indigo-500/10 rounded-lg text-sm text-indigo-300"></div>
+                </div>
+
+                <!-- Ejercicio 6 -->
+                <div class="glass rounded-2xl p-6 exercise-card" data-answer="180" data-type="multiply">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-bold">Ejercicio 6</h3>
+                        <span class="px-3 py-1 rounded-full bg-purple-500/20 text-purple-400 text-sm">Tiempo</span>
+                    </div>
+                    <p class="text-lg mb-4">Convierte <span class="font-bold text-purple-400">3 min</span> a <span class="font-bold text-purple-400">seg</span></p>
+                    <div class="flex gap-2">
+                        <input type="text" id="ex6" placeholder="Tu respuesta" 
+                            class="flex-1 px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg focus:outline-none focus:border-indigo-500 transition-all"
+                            onkeypress="if(event.key==='Enter')checkExercise(6)">
+                        <button onclick="checkExercise(6)" class="px-6 py-3 bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                            Verificar
+                        </button>
+                    </div>
+                    <div id="fb6" class="mt-3 hidden"></div>
+                    <button onclick="showExerciseHint(6)" class="mt-2 text-sm text-gray-500 hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-lightbulb mr-1"></i>¿Necesitas ayuda?
+                    </button>
+                    <div id="hint6" class="mt-2 hidden p-3 bg-indigo-500/10 rounded-lg text-sm text-indigo-300"></div>
+                </div>
+            </div>
+
+            <div class="mt-12 text-center">
+                <button onclick="resetExercises()" class="px-8 py-4 glass rounded-full hover:bg-white/10 transition-all font-medium">
+                    <i class="fas fa-redo mr-2"></i>Reiniciar Todo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // NAVEGACIÓN ENTRE SECCIONES
+        function showSection(sectionId) {
+            // Ocultar todas las secciones
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar la seleccionada
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Actualizar navegación
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active', 'text-indigo-400');
+                if(link.dataset.section === sectionId) {
+                    link.classList.add('active', 'text-indigo-400');
+                }
+            });
+            
+            // Cerrar menú móvil si está abierto
+            document.getElementById('mobileMenu').classList.add('hidden');
+            
+            // Scroll al top
+            window.scrollTo(0, 0);
+        }
+
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        }
+
+        // CALCULADORA
+        const calcData = {
+            length: {
+                units: ['km', 'm', 'cm', 'mm'],
+                factors: [1000, 100, 10],
+                names: { km: 'Kilómetro', m: 'Metro', cm: 'Centímetro', mm: 'Milímetro' }
+            },
+            mass: {
+                units: ['Ton', 'kg', 'g', 'mg'],
+                factors: [1000, 1000, 1000],
+                names: { Ton: 'Tonelada', kg: 'Kilogramo', g: 'Gramo', mg: 'Miligramo' }
+            },
+            time: {
+                units: ['hr', 'min', 'seg'],
+                factors: [60, 60],
+                names: { hr: 'Hora', min: 'Minuto', seg: 'Segundo' }
+            }
+        };
+
+        let currentCalcMode = 'length';
+
+        function setCalcMode(mode) {
+            currentCalcMode = mode;
+            document.querySelectorAll('.calc-tab').forEach(tab => {
+                if(tab.dataset.mode === mode) {
+                    tab.classList.add('bg-indigo-600', 'text-white');
+                    tab.classList.remove('glass');
+                } else {
+                    tab.classList.remove('bg-indigo-600', 'text-white');
+                    tab.classList.add('glass');
+                }
+            });
+            populateCalcSelects();
+            calculate();
+        }
+
+        function populateCalcSelects() {
+            const from = document.getElementById('calcFrom');
+            const to = document.getElementById('calcTo');
+            const d = calcData[currentCalcMode];
+            
+            from.innerHTML = '';
+            to.innerHTML = '';
+            
+            d.units.forEach(u => {
+                from.add(new Option(d.names[u] + ' (' + u + ')', u));
+                to.add(new Option(d.names[u] + ' (' + u + ')', u));
+            });
+            
+            to.selectedIndex = 1;
+        }
+
+        function calculate() {
+            const input = parseFloat(document.getElementById('calcInput').value);
+            const from = document.getElementById('calcFrom').value;
+            const to = document.getElementById('calcTo').value;
+            const d = calcData[currentCalcMode];
+            
+            if (isNaN(input)) {
+                document.getElementById('calcOutput').value = '';
+                document.getElementById('calcSteps').classList.add('hidden');
+                document.getElementById('opIndicator').innerHTML = `
+                    <i class="fas fa-exchange-alt text-4xl text-gray-500 mb-2"></i>
+                    <p class="text-gray-400 text-sm">Ingresa valor</p>
+                `;
+                return;
+            }
+            
+            const fromIdx = d.units.indexOf(from);
+            const toIdx = d.units.indexOf(to);
+            
+            if (fromIdx === toIdx) {
+                document.getElementById('calcOutput').value = input;
+                document.getElementById('opIndicator').innerHTML = `
+                    <div class="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-equals text-2xl"></i>
+                    </div>
+                    <p class="text-gray-400">Igual</p>
+                `;
+                return;
+            }
+            
+            let result = input;
+            let steps = [];
+            
+            if (fromIdx < toIdx) {
+                let factor = 1;
+                for (let i = fromIdx; i < toIdx; i++) factor *= d.factors[i];
+                result = input * factor;
+                
+                document.getElementById('opIndicator').innerHTML = `
+                    <div class="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-2 animate-bounce">
+                        <i class="fas fa-times text-2xl text-white"></i>
+                    </div>
+                    <p class="text-green-400 font-bold">MULTIPLICAR</p>
+                    <p class="text-xs text-gray-400">×${factor}</p>
+                `;
+                
+                steps = [
+                    `1. De ${from} (grande) a ${to} (chico)`,
+                    `2. <span class="text-green-400 font-bold">MULTIPLICAS</span> por ${factor}`,
+                    `3. ${input} × ${factor} = <span class="text-indigo-400 font-bold">${result}</span>`
+                ];
+            } else {
+                let factor = 1;
+                for (let i = toIdx; i < fromIdx; i++) factor *= d.factors[i];
+                result = input / factor;
+                
+                document.getElementById('opIndicator').innerHTML = `
+                    <div class="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-2 animate-bounce">
+                        <i class="fas fa-divide text-2xl text-white"></i>
+                    </div>
+                    <p class="text-red-400 font-bold">DIVIDIR</p>
+                    <p class="text-xs text-gray-400">÷${factor}</p>
+                `;
+                
+                steps = [
+                    `1. De ${from} (chico) a ${to} (grande)`,
+                    `2. <span class="text-red-400 font-bold">DIVIDES</span> por ${factor}`,
+                    `3. ${input} ÷ ${factor} = <span class="text-indigo-400 font-bold">${result}</span>`
+                ];
+            }
+            
+            document.getElementById('calcOutput').value = result;
+            document.getElementById('calcSteps').classList.remove('hidden');
+            document.getElementById('calcStepsContent').innerHTML = steps.map(s => `<p>${s}</p>`).join('');
+        }
+
+        // EJERCICIOS
+        let exerciseScore = 0;
+        const answeredExercises = new Set();
+
+        function checkExercise(num) {
+            if (answeredExercises.has(num)) return;
+            
+            const card = document.querySelector(`#ex${num}`).closest('.exercise-card');
+            const correct = parseFloat(card.dataset.answer);
+            const user = parseFloat(document.getElementById(`ex${num}`).value.replace(',', '.'));
+            const fb = document.getElementById(`fb${num}`);
+            const type = card.dataset.type;
+            
+            fb.classList.remove('hidden');
+            
+            if (user === correct) {
+                exerciseScore++;
+                answeredExercises.add(num);
+                document.getElementById('scoreCorrect').textContent = exerciseScore;
+                document.getElementById(`ex${num}`).disabled = true;
+                
+                fb.innerHTML = `<div class="flex items-center gap-2 text-green-400 bounce-in"><i class="fas fa-check-circle text-xl"></i><span class="font-bold">¡Correcto! 🎉</span></div>`;
+                fb.className = 'mt-3 p-3 bg-green-500/20 border border-green-500 rounded-lg';
+                
+                if (exerciseScore === 6) {
+                    setTimeout(() => alert('¡Felicidades! Completaste todos los ejercicios 🏆'), 500);
+                }
+            } else {
+                fb.innerHTML = `<div class="flex items-center gap-2 text-red-400 shake"><i class="fas fa-times-circle text-xl"></i><span>Intenta de nuevo. ¿${type === 'multiply' ? 'Multiplicas' : 'Divides'}?</span></div>`;
+                fb.className = 'mt-3 p-3 bg-red-500/20 border border-red-500 rounded-lg';
+            }
+        }
+
+        function showExerciseHint(num) {
+            const hint = document.getElementById(`hint${num}`);
+            const type = document.querySelector(`#ex${num}`).closest('.exercise-card').dataset.type;
+            hint.classList.remove('hidden');
+            hint.innerHTML = type === 'multiply' 
+                ? `<i class="fas fa-arrow-right mr-2"></i><strong>Pista:</strong> <span class="text-green-400 font-bold">MULTIPLICA</span> (grande → chico)`
+                : `<i class="fas fa-arrow-left mr-2"></i><strong>Pista:</strong> <span class="text-red-400 font-bold">DIVIDE</span> (chico → grande)`;
+        }
+
+        function resetExercises() {
+            exerciseScore = 0;
+            answeredExercises.clear();
+            document.getElementById('scoreCorrect').textContent = '0';
+            
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`ex${i}`).value = '';
+                document.getElementById(`ex${i}`).disabled = false;
+                document.getElementById(`fb${i}`).classList.add('hidden');
+                document.getElementById(`hint${i}`).classList.add('hidden');
+            }
+        }
+
+        // Inicializar
+        populateCalcSelects();
+    </script>
+</body>
+</html>
